@@ -1,6 +1,26 @@
 import { getDb } from "@/db";
 import { meditations, sessions, users } from "@/db/schema";
-import { eq, and, notInArray, sql } from "drizzle-orm";
+import { eq, and, notInArray, inArray, sql } from "drizzle-orm";
+
+// Map onboarding focus areas to actual meditation categories
+const FOCUS_TO_CATEGORIES: Record<string, string[]> = {
+  stress: ["stress"],
+  focus: ["focus"],
+  sleep: ["sleep"],
+  emotional: ["loving_kindness", "body_scan"],
+  general: ["breath", "morning", "body_scan"],
+};
+
+function resolveCategories(focusAreas: string[]): string[] {
+  const categories = new Set<string>();
+  for (const area of focusAreas) {
+    const mapped = FOCUS_TO_CATEGORIES[area];
+    if (mapped) {
+      for (const cat of mapped) categories.add(cat);
+    }
+  }
+  return [...categories];
+}
 
 export async function getRecommendedMeditation(userId: string) {
   const db = getDb();
@@ -28,11 +48,17 @@ export async function getRecommendedMeditation(userId: string) {
 
   const recentMeditationIds = recentSessions.map((s) => s.meditationId);
 
+  // Map focus areas to valid DB categories
+  const dbCategories =
+    user.focusAreas && user.focusAreas.length > 0
+      ? resolveCategories(user.focusAreas)
+      : [];
+
   // Find a meditation matching preferences, excluding recent ones
   const candidates = await db.query.meditations.findMany({
     where: and(
-      user.focusAreas && user.focusAreas.length > 0
-        ? sql`${meditations.category} = ANY(${user.focusAreas})`
+      dbCategories.length > 0
+        ? inArray(meditations.category, dbCategories as [string, ...string[]])
         : undefined,
       recentMeditationIds.length > 0
         ? notInArray(meditations.id, recentMeditationIds)

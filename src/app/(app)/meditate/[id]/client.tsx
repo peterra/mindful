@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { MeditationPlayer } from "@/components/meditation-player";
 import { PostSession } from "@/components/post-session";
@@ -24,7 +24,7 @@ export function MeditateClient({
   const [resolvedAudioUrl, setResolvedAudioUrl] = useState(audioUrl);
 
   // Try to generate audio on mount if missing
-  useState(() => {
+  useEffect(() => {
     if (!audioUrl) {
       ensureAudio(meditationId)
         .then(setResolvedAudioUrl)
@@ -32,7 +32,7 @@ export function MeditateClient({
           // Will fall back to text display
         });
     }
-  });
+  }, [audioUrl, meditationId]);
 
   const handleComplete = useCallback(() => {
     setPhase("reflection");
