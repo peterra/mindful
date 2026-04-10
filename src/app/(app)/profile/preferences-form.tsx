@@ -22,8 +22,8 @@ const DURATIONS = [
 ];
 
 const VOICES = [
-  { value: "shimmer", label: "Shimmer", description: "Warm and calm" },
-  { value: "nova", label: "Nova", description: "Clear and gentle" },
+  { value: "shimmer", label: "Journey F", description: "Warm and calm female voice" },
+  { value: "nova", label: "Journey D", description: "Clear and gentle male voice" },
 ];
 
 interface PreferencesFormProps {
