@@ -68,10 +68,23 @@ export async function POST(
     }
   }
 
-  await db
-    .update(meditations)
-    .set({ recordedAudioUrl: blob.url })
-    .where(eq(meditations.id, id));
+  try {
+    await db
+      .update(meditations)
+      .set({ recordedAudioUrl: blob.url })
+      .where(eq(meditations.id, id));
+  } catch (err) {
+    console.error("Failed to update meditation row; cleaning up new blob", err);
+    try {
+      await del(blob.url);
+    } catch (cleanupErr) {
+      console.warn("Failed to clean up new blob after DB failure", cleanupErr);
+    }
+    return Response.json(
+      { error: "Failed to save recording" },
+      { status: 500 }
+    );
+  }
 
   return Response.json({ url: blob.url });
 }
