@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { MeditationPlayer } from "@/components/meditation-player";
 import { PostSession } from "@/components/post-session";
+import { AdminRecordingControls } from "@/components/admin-recording-controls";
 import { completeSession, ensureAudio } from "./actions";
 
 interface MeditateClientProps {
@@ -11,6 +12,8 @@ interface MeditateClientProps {
   audioUrl: string | null;
   script: string;
   durationSeconds: number;
+  admin: boolean;
+  hasRecording: boolean;
 }
 
 export function MeditateClient({
@@ -18,12 +21,13 @@ export function MeditateClient({
   audioUrl,
   script,
   durationSeconds,
+  admin,
+  hasRecording,
 }: MeditateClientProps) {
   const router = useRouter();
   const [phase, setPhase] = useState<"playing" | "reflection">("playing");
   const [resolvedAudioUrl, setResolvedAudioUrl] = useState(audioUrl);
 
-  // Try to generate audio on mount if missing
   useEffect(() => {
     if (!audioUrl) {
       ensureAudio(meditationId)
@@ -58,11 +62,19 @@ export function MeditateClient({
   }
 
   return (
-    <MeditationPlayer
-      audioUrl={resolvedAudioUrl}
-      script={script}
-      durationSeconds={durationSeconds}
-      onComplete={handleComplete}
-    />
+    <>
+      <MeditationPlayer
+        audioUrl={resolvedAudioUrl}
+        script={script}
+        durationSeconds={durationSeconds}
+        onComplete={handleComplete}
+      />
+      {admin && (
+        <AdminRecordingControls
+          meditationId={meditationId}
+          hasRecording={hasRecording}
+        />
+      )}
+    </>
   );
 }

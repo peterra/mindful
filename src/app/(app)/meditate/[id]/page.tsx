@@ -5,6 +5,7 @@ import { meditations } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { Badge } from "@/components/ui/badge";
 import { MeditateClient } from "./client";
+import { isAdmin } from "@/lib/admin";
 
 const CATEGORY_LABELS: Record<string, string> = {
   breath: "Breath Awareness",
@@ -32,6 +33,9 @@ export default async function MeditatePage({
 
   if (!meditation) notFound();
 
+  const audioSrc = meditation.recordedAudioUrl ?? meditation.audioUrl;
+  const admin = isAdmin(userId);
+
   return (
     <div className="mx-auto max-w-lg space-y-6">
       <div>
@@ -51,9 +55,11 @@ export default async function MeditatePage({
 
       <MeditateClient
         meditationId={meditation.id}
-        audioUrl={meditation.audioUrl}
+        audioUrl={audioSrc}
         script={meditation.script}
         durationSeconds={meditation.durationSeconds}
+        admin={admin}
+        hasRecording={!!meditation.recordedAudioUrl}
       />
     </div>
   );
