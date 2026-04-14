@@ -46,6 +46,7 @@ export default async function ProfilePage() {
         </CardHeader>
         <CardContent>
           <UserProfile
+            routing="hash"
             appearance={{
               elements: {
                 rootBox: "w-full",
