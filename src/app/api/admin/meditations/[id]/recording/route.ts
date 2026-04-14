@@ -115,10 +115,18 @@ export async function DELETE(
     }
   }
 
-  await db
-    .update(meditations)
-    .set({ recordedAudioUrl: null })
-    .where(eq(meditations.id, id));
+  try {
+    await db
+      .update(meditations)
+      .set({ recordedAudioUrl: null })
+      .where(eq(meditations.id, id));
+  } catch (err) {
+    console.error("Failed to clear recordedAudioUrl after blob delete", err);
+    return Response.json(
+      { error: "Failed to remove recording" },
+      { status: 500 }
+    );
+  }
 
   return Response.json({ ok: true });
 }
