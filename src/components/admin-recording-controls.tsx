@@ -107,6 +107,8 @@ export function AdminRecordingControls({
         type="file"
         accept="audio/mpeg,audio/mp4,audio/x-m4a"
         className="hidden"
+        aria-hidden="true"
+        tabIndex={-1}
         onChange={onFileChosen}
       />
       {hasRecording ? (
