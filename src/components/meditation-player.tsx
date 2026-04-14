@@ -1,8 +1,10 @@
 "use client";
 
 import { useRef, useState, useEffect, useCallback } from "react";
-import { Play, Pause, RotateCcw, Volume2, FileText } from "lucide-react";
+import { Play, Pause, RotateCcw, Volume2, FileText, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useVoiceSettings } from "@/lib/voice-settings";
+import { VoiceSettingsPanel } from "@/components/voice-settings-panel";
 
 interface MeditationPlayerProps {
   audioUrl: string | null;
@@ -20,11 +22,15 @@ export function MeditationPlayer({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const startTimeRef = useRef<number>(0);
+  const suppressNextEndRef = useRef(false);
+  const audioErroredRef = useRef(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(durationSeconds);
+  const [settings, updateSettings, resetSettings] = useVoiceSettings();
+  const [showSettings, setShowSettings] = useState(false);
   const [mode, setMode] = useState<"audio" | "tts" | "text">(
-    audioUrl ? "audio" : "tts"
+    audioUrl && settings.preferredEngine === "audio" ? "audio" : "tts"
   );
   const [showScript, setShowScript] = useState(false);
 
@@ -32,15 +38,45 @@ export function MeditationPlayer({
   useEffect(() => {
     if (mode === "tts" && typeof window !== "undefined") {
       if (!window.speechSynthesis) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMode("text");
       }
     }
   }, [mode]);
 
+  // Resync mode when user toggles preferredEngine in the settings panel.
+  // Stops any current playback and switches engines.
+  useEffect(() => {
+    if (mode === "text") return;
+    const next =
+      audioUrl && settings.preferredEngine === "audio" && !audioErroredRef.current
+        ? "audio"
+        : "tts";
+    if (next !== mode) {
+      suppressNextEndRef.current = true;
+      window.speechSynthesis?.cancel();
+      suppressNextEndRef.current = false;
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setIsPlaying(false);
+      setCurrentTime(0);
+      setMode(next);
+    }
+  }, [settings.preferredEngine, audioUrl, mode]);
+
+  // Reset audio-errored guard when a new audio URL arrives (new meditation loaded).
+  useEffect(() => {
+    audioErroredRef.current = false;
+  }, [audioUrl]);
+
   // Clean up speech synthesis on unmount
   useEffect(() => {
     return () => {
+      suppressNextEndRef.current = true;
       window.speechSynthesis?.cancel();
+      suppressNextEndRef.current = false;
     };
   }, []);
 
@@ -76,38 +112,64 @@ export function MeditationPlayer({
     const audio = audioRef.current;
     if (!audio) return;
 
+    function handleError() {
+      audioErroredRef.current = true;
+      setMode("tts");
+    }
+
     audio.addEventListener("timeupdate", handleTimeUpdate);
     audio.addEventListener("loadedmetadata", handleLoadedMetadata);
     audio.addEventListener("ended", handleEnded);
-    audio.addEventListener("error", () => setMode("tts"));
+    audio.addEventListener("error", handleError);
 
     return () => {
       audio.removeEventListener("timeupdate", handleTimeUpdate);
       audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
       audio.removeEventListener("ended", handleEnded);
-      audio.removeEventListener("error", () => setMode("tts"));
+      audio.removeEventListener("error", handleError);
     };
-  }, [handleTimeUpdate, handleLoadedMetadata, handleEnded]);
+  }, [mode, handleTimeUpdate, handleLoadedMetadata, handleEnded]);
+
+  // Apply user rate/volume to the audio element whenever they change.
+  useEffect(() => {
+    if (mode !== "audio" || !audioRef.current) return;
+    audioRef.current.playbackRate = settings.rate;
+    audioRef.current.volume = settings.volume;
+  }, [mode, settings.rate, settings.volume]);
 
   function startTTS() {
+    suppressNextEndRef.current = true;
     window.speechSynthesis.cancel();
+    suppressNextEndRef.current = false;
 
     const utterance = new SpeechSynthesisUtterance(script);
-    utterance.rate = 0.85;
-    utterance.pitch = 0.95;
+    utterance.rate = settings.rate;
+    utterance.pitch = settings.pitch;
+    utterance.volume = settings.volume;
+    utterance.lang = settings.lang;
 
-    // Try to pick a good voice
+    // Pick voice: stored voiceURI first, then heuristic fallback.
     const voices = window.speechSynthesis.getVoices();
-    const preferred = voices.find(
-      (v) =>
-        v.name.includes("Samantha") ||
-        v.name.includes("Karen") ||
-        v.name.includes("Google UK English Female") ||
-        (v.lang.startsWith("en") && v.name.toLowerCase().includes("female"))
-    );
-    if (preferred) utterance.voice = preferred;
+    let chosen: SpeechSynthesisVoice | undefined;
+    if (settings.voiceURI) {
+      chosen = voices.find((v) => v.voiceURI === settings.voiceURI);
+    }
+    if (!chosen) {
+      chosen = voices.find(
+        (v) =>
+          v.name.includes("Samantha") ||
+          v.name.includes("Karen") ||
+          v.name.includes("Google UK English Female") ||
+          (v.lang.startsWith("en") && v.name.toLowerCase().includes("female"))
+      );
+    }
+    if (chosen) utterance.voice = chosen;
 
     utterance.onend = () => {
+      if (suppressNextEndRef.current) {
+        suppressNextEndRef.current = false;
+        return;
+      }
       setIsPlaying(false);
       onComplete();
     };
@@ -147,7 +209,9 @@ export function MeditationPlayer({
       audioRef.current.currentTime = 0;
       setCurrentTime(0);
     } else if (mode === "tts") {
+      suppressNextEndRef.current = true;
       window.speechSynthesis.cancel();
+      suppressNextEndRef.current = false;
       setCurrentTime(0);
       setIsPlaying(false);
       startTTS();
@@ -247,7 +311,24 @@ export function MeditationPlayer({
           <FileText className="mr-1 h-4 w-4" />
           {showScript ? "Hide Text" : "Show Text"}
         </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowSettings(!showSettings)}
+        >
+          <Settings className="mr-1 h-4 w-4" />
+          Voice
+        </Button>
       </div>
+
+      {showSettings && (
+        <VoiceSettingsPanel
+          settings={settings}
+          onChange={updateSettings}
+          onReset={resetSettings}
+          currentMode={mode}
+        />
+      )}
 
       {/* Script text */}
       {showScript && (
