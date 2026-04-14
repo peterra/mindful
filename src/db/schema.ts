@@ -50,6 +50,7 @@ export const meditations = pgTable("meditations", {
   difficulty: difficultyEnum("difficulty").notNull(),
   script: text("script").notNull(),
   audioUrl: text("audio_url"),
+  recordedAudioUrl: text("recorded_audio_url"),
   voice: text("voice").default("shimmer"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
