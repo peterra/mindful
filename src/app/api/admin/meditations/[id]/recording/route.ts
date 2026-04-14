@@ -88,3 +88,37 @@ export async function POST(
 
   return Response.json({ url: blob.url });
 }
+
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { userId } = await auth();
+  if (!isAdmin(userId)) {
+    return Response.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const { id } = await params;
+  const db = getDb();
+  const meditation = await db.query.meditations.findFirst({
+    where: eq(meditations.id, id),
+  });
+  if (!meditation) {
+    return Response.json({ error: "Not found" }, { status: 404 });
+  }
+
+  if (meditation.recordedAudioUrl) {
+    try {
+      await del(meditation.recordedAudioUrl);
+    } catch (err) {
+      console.warn("Failed to delete recording blob", err);
+    }
+  }
+
+  await db
+    .update(meditations)
+    .set({ recordedAudioUrl: null })
+    .where(eq(meditations.id, id));
+
+  return Response.json({ ok: true });
+}
