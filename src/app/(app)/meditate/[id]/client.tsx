@@ -26,12 +26,13 @@ export function MeditateClient({
 }: MeditateClientProps) {
   const router = useRouter();
   const [phase, setPhase] = useState<"playing" | "reflection">("playing");
-  const [resolvedAudioUrl, setResolvedAudioUrl] = useState(audioUrl);
+  const [generatedAudioUrl, setGeneratedAudioUrl] = useState<string | null>(null);
+  const playerAudioUrl = audioUrl ?? generatedAudioUrl;
 
   useEffect(() => {
     if (!audioUrl) {
       ensureAudio(meditationId)
-        .then(setResolvedAudioUrl)
+        .then(setGeneratedAudioUrl)
         .catch(() => {
           // Will fall back to text display
         });
@@ -64,7 +65,7 @@ export function MeditateClient({
   return (
     <>
       <MeditationPlayer
-        audioUrl={resolvedAudioUrl}
+        audioUrl={playerAudioUrl}
         script={script}
         durationSeconds={durationSeconds}
         onComplete={handleComplete}
