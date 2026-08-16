@@ -1,4 +1,11 @@
-export type FlowerColorId = "rose" | "amber" | "sage" | "lavender" | "blush";
+export type FlowerColorId =
+  | "rose"
+  | "amber"
+  | "sage"
+  | "lavender"
+  | "blush"
+  | "black"
+  | "gray";
 
 export interface FlowerColorDef {
   id: FlowerColorId;
@@ -12,6 +19,8 @@ export const FLOWER_COLORS: FlowerColorDef[] = [
   { id: "sage", label: "Sage", hex: "#7a9a6a" },
   { id: "lavender", label: "Lavender", hex: "#8a7ec7" },
   { id: "blush", label: "Blush", hex: "#e8c9d4" },
+  { id: "black", label: "Black", hex: "#222222" },
+  { id: "gray", label: "Gray", hex: "#9e9e9e" },
 ];
 
 export const MAX_FLOWERS = 10;

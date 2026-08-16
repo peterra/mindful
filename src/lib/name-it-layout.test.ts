@@ -9,13 +9,13 @@ import {
 } from "./name-it-layout";
 
 describe("FLOWER_COLORS", () => {
-  it("has exactly 5 colors", () => {
-    expect(FLOWER_COLORS).toHaveLength(5);
+  it("has exactly 7 colors", () => {
+    expect(FLOWER_COLORS).toHaveLength(7);
   });
 
   it("has unique ids", () => {
     const ids = FLOWER_COLORS.map((c) => c.id);
-    expect(new Set(ids).size).toBe(5);
+    expect(new Set(ids).size).toBe(7);
   });
 });
 
