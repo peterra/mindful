@@ -1,6 +1,7 @@
 "use server";
 
 import { auth } from "@clerk/nextjs/server";
+import { and, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { feelingEntries } from "@/db/schema";
 import {
@@ -35,4 +36,14 @@ export async function saveFeelingEntry(
     feelingText: row.feelingText,
     createdAt: row.createdAt.toISOString(),
   };
+}
+
+export async function deleteFeelingEntry(id: string): Promise<void> {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const db = getDb();
+  await db
+    .delete(feelingEntries)
+    .where(and(eq(feelingEntries.id, id), eq(feelingEntries.userId, userId)));
 }

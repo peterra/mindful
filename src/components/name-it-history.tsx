@@ -1,11 +1,13 @@
 "use client";
 
+import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FLOWER_COLORS, type FeelingEntrySummary } from "@/lib/name-it-layout";
 
 interface NameItHistoryProps {
   entries: FeelingEntrySummary[];
   onBack: () => void;
+  onDelete: (id: string) => void;
 }
 
 function formatTimestamp(iso: string) {
@@ -17,7 +19,12 @@ function formatTimestamp(iso: string) {
   });
 }
 
-export function NameItHistory({ entries, onBack }: NameItHistoryProps) {
+export function NameItHistory({ entries, onBack, onDelete }: NameItHistoryProps) {
+  function handleDelete(id: string) {
+    if (!confirm("Delete this entry? This can't be undone.")) return;
+    onDelete(id);
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -55,6 +62,14 @@ export function NameItHistory({ entries, onBack }: NameItHistoryProps) {
                   {formatTimestamp(entry.createdAt)}
                 </p>
               </div>
+              <button
+                type="button"
+                aria-label="Delete entry"
+                onClick={() => handleDelete(entry.id)}
+                className="rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
             </li>
           ))}
         </ul>

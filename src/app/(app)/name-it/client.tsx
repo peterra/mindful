@@ -6,7 +6,7 @@ import { NameItFlowerTray } from "@/components/name-it-flower-tray";
 import { NameItNamingStep } from "@/components/name-it-naming-step";
 import { NameItHistory } from "@/components/name-it-history";
 import { Button } from "@/components/ui/button";
-import { saveFeelingEntry } from "./actions";
+import { saveFeelingEntry, deleteFeelingEntry } from "./actions";
 import type { FeelingEntrySummary, FlowerColorId } from "@/lib/name-it-layout";
 
 interface NameItClientProps {
@@ -54,8 +54,23 @@ export function NameItClient({ initialEntries }: NameItClientProps) {
     setPhase("building");
   }
 
+  async function handleDelete(id: string) {
+    try {
+      await deleteFeelingEntry(id);
+      setEntries((prev) => prev.filter((entry) => entry.id !== id));
+    } catch {
+      alert("Couldn't delete that entry — check your connection and try again.");
+    }
+  }
+
   if (showHistory) {
-    return <NameItHistory entries={entries} onBack={() => setShowHistory(false)} />;
+    return (
+      <NameItHistory
+        entries={entries}
+        onBack={() => setShowHistory(false)}
+        onDelete={handleDelete}
+      />
+    );
   }
 
   return (
