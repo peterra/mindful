@@ -9,11 +9,13 @@ import {
   BarChart3,
   User,
   Sparkles,
+  Flower2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/dashboard", label: "Home", icon: Home },
+  { href: "/name-it", label: "Name It", icon: Flower2 },
   { href: "/library", label: "Library", icon: Library },
   { href: "/progress", label: "Progress", icon: BarChart3 },
   { href: "/profile", label: "Profile", icon: User },
