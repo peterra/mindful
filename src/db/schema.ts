@@ -88,3 +88,13 @@ export const achievements = pgTable("achievements", {
   achievementType: text("achievement_type").notNull(),
   unlockedAt: timestamp("unlocked_at").defaultNow().notNull(),
 });
+
+export const feelingEntries = pgTable("feeling_entries", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: text("user_id")
+    .references(() => users.clerkId)
+    .notNull(),
+  flowerColors: text("flower_colors").array().notNull(),
+  feelingText: text("feeling_text").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
