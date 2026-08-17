@@ -34,7 +34,6 @@ export function isValidFlowerColors(
 ): colors is FlowerColorId[] {
   return (
     Array.isArray(colors) &&
-    colors.length >= 1 &&
     colors.length <= MAX_FLOWERS &&
     colors.every((c) => typeof c === "string" && isFlowerColorId(c))
   );
@@ -67,9 +66,50 @@ export function getStemPath(index: number, total: number): string {
   return `M${GRIP_POINT.x},${GRIP_POINT.y} Q${midX},${midY} ${pos.x},${pos.y}`;
 }
 
+export const MIN_HAZE_INTENSITY = 0;
+export const MAX_HAZE_INTENSITY = 100;
+export const DEFAULT_HAZE_INTENSITY = 50;
+
+export const HAZE_ELLIPSE = { cx: 145, cy: 120, rx: 65, ry: 50 };
+export const HAZE_BLUR_STD_DEVIATION = 18;
+
+const HAZE_LIGHT_HEX = "#e8e8e8";
+const HAZE_DARK_HEX = "#4a4a4a";
+const HAZE_LIGHT_OPACITY = 0.25;
+const HAZE_DARK_OPACITY = 0.7;
+
+function clampHazeIntensity(intensity: number): number {
+  return Math.min(MAX_HAZE_INTENSITY, Math.max(MIN_HAZE_INTENSITY, intensity));
+}
+
+function hexToRgb(hex: string): [number, number, number] {
+  const n = parseInt(hex.slice(1), 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+
+function rgbToHex(r: number, g: number, b: number): string {
+  return `#${[r, g, b]
+    .map((v) => Math.round(v).toString(16).padStart(2, "0"))
+    .join("")}`;
+}
+
+export function getHazeColor(intensity: number): string {
+  const n = clampHazeIntensity(intensity) / 100;
+  const [lr, lg, lb] = hexToRgb(HAZE_LIGHT_HEX);
+  const [dr, dg, db] = hexToRgb(HAZE_DARK_HEX);
+  return rgbToHex(lr + (dr - lr) * n, lg + (dg - lg) * n, lb + (db - lb) * n);
+}
+
+export function getHazeOpacity(intensity: number): number {
+  const n = clampHazeIntensity(intensity) / 100;
+  return HAZE_LIGHT_OPACITY + (HAZE_DARK_OPACITY - HAZE_LIGHT_OPACITY) * n;
+}
+
 export interface FeelingEntrySummary {
   id: string;
   flowerColors: FlowerColorId[];
   feelingText: string;
   createdAt: string;
+  hasHaze: boolean;
+  hazeIntensity: number | null;
 }
