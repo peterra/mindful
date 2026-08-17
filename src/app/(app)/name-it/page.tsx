@@ -21,6 +21,8 @@ export default async function NameItPage() {
     flowerColors: row.flowerColors as FlowerColorId[],
     feelingText: row.feelingText,
     createdAt: row.createdAt.toISOString(),
+    hasHaze: row.hasHaze,
+    hazeIntensity: row.hazeIntensity,
   }));
 
   return <NameItClient initialEntries={initialEntries} />;
