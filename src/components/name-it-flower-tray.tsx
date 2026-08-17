@@ -1,13 +1,22 @@
 "use client";
 
+import { Cloud } from "lucide-react";
 import { FLOWER_COLORS, MAX_FLOWERS, type FlowerColorId } from "@/lib/name-it-layout";
+import { cn } from "@/lib/utils";
 
 interface NameItFlowerTrayProps {
   flowers: FlowerColorId[];
   onAdd: (color: FlowerColorId) => void;
+  hasHaze: boolean;
+  onToggleHaze: () => void;
 }
 
-export function NameItFlowerTray({ flowers, onAdd }: NameItFlowerTrayProps) {
+export function NameItFlowerTray({
+  flowers,
+  onAdd,
+  hasHaze,
+  onToggleHaze,
+}: NameItFlowerTrayProps) {
   const atCap = flowers.length >= MAX_FLOWERS;
 
   return (
@@ -27,6 +36,18 @@ export function NameItFlowerTray({ flowers, onAdd }: NameItFlowerTrayProps) {
             style={{ backgroundColor: color.hex }}
           />
         ))}
+        <button
+          type="button"
+          aria-label={hasHaze ? "Remove haze" : "Add haze"}
+          aria-pressed={hasHaze}
+          onClick={onToggleHaze}
+          className={cn(
+            "flex h-8 w-8 items-center justify-center rounded-full border border-border text-muted-foreground transition-transform hover:scale-110",
+            hasHaze && "border-foreground bg-muted text-foreground"
+          )}
+        >
+          <Cloud className="h-4 w-4" />
+        </button>
       </div>
     </div>
   );
