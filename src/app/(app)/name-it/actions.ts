@@ -6,13 +6,17 @@ import { getDb } from "@/db";
 import { feelingEntries } from "@/db/schema";
 import {
   isValidFlowerColors,
+  MIN_HAZE_INTENSITY,
+  MAX_HAZE_INTENSITY,
   type FlowerColorId,
   type FeelingEntrySummary,
 } from "@/lib/name-it-layout";
 
 export async function saveFeelingEntry(
   flowerColors: FlowerColorId[],
-  feelingText: string
+  feelingText: string,
+  hasHaze: boolean,
+  hazeIntensity: number | null
 ): Promise<FeelingEntrySummary> {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
@@ -23,11 +27,28 @@ export async function saveFeelingEntry(
   if (!isValidFlowerColors(flowerColors)) {
     throw new Error("Invalid flower selection");
   }
+  if (flowerColors.length === 0 && !hasHaze) {
+    throw new Error("Add at least a flower or haze before saving");
+  }
+  if (
+    hasHaze &&
+    (typeof hazeIntensity !== "number" ||
+      hazeIntensity < MIN_HAZE_INTENSITY ||
+      hazeIntensity > MAX_HAZE_INTENSITY)
+  ) {
+    throw new Error("Invalid haze intensity");
+  }
 
   const db = getDb();
   const [row] = await db
     .insert(feelingEntries)
-    .values({ userId, flowerColors, feelingText: trimmed })
+    .values({
+      userId,
+      flowerColors,
+      feelingText: trimmed,
+      hasHaze,
+      hazeIntensity: hasHaze ? hazeIntensity : null,
+    })
     .returning();
 
   return {
@@ -35,6 +56,8 @@ export async function saveFeelingEntry(
     flowerColors: row.flowerColors as FlowerColorId[],
     feelingText: row.feelingText,
     createdAt: row.createdAt.toISOString(),
+    hasHaze: row.hasHaze,
+    hazeIntensity: row.hazeIntensity,
   };
 }
 
