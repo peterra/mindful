@@ -4,6 +4,10 @@ import {
   FLOWER_COLORS,
   getFlowerSlotPosition,
   getStemPath,
+  getHazeColor,
+  getHazeOpacity,
+  HAZE_ELLIPSE,
+  HAZE_BLUR_STD_DEVIATION,
   type FlowerColorId,
 } from "@/lib/name-it-layout";
 
@@ -48,9 +52,16 @@ const HAND_PATH =
 interface NameItHandsProps {
   flowers: FlowerColorId[];
   onRemoveFlower: (index: number) => void;
+  hasHaze: boolean;
+  hazeIntensity: number;
 }
 
-export function NameItHands({ flowers, onRemoveFlower }: NameItHandsProps) {
+export function NameItHands({
+  flowers,
+  onRemoveFlower,
+  hasHaze,
+  hazeIntensity,
+}: NameItHandsProps) {
   function hexFor(color: FlowerColorId) {
     return FLOWER_COLORS.find((c) => c.id === color)!.hex;
   }
@@ -66,6 +77,18 @@ export function NameItHands({ flowers, onRemoveFlower }: NameItHandsProps) {
           : `Two hands holding a bouquet of ${flowers.length} flower${flowers.length === 1 ? "" : "s"}`
       }
     >
+      <defs>
+        <filter
+          id="name-it-haze-blur"
+          x="-50%"
+          y="-50%"
+          width="200%"
+          height="200%"
+        >
+          <feGaussianBlur stdDeviation={HAZE_BLUR_STD_DEVIATION} />
+        </filter>
+      </defs>
+
       {flowers.map((color, i) => {
         const pos = getFlowerSlotPosition(i, flowers.length);
         return (
@@ -109,6 +132,18 @@ export function NameItHands({ flowers, onRemoveFlower }: NameItHandsProps) {
         strokeLinejoin="round"
         transform="translate(195,120) rotate(-90)"
       />
+
+      {hasHaze && (
+        <ellipse
+          cx={HAZE_ELLIPSE.cx}
+          cy={HAZE_ELLIPSE.cy}
+          rx={HAZE_ELLIPSE.rx}
+          ry={HAZE_ELLIPSE.ry}
+          fill={getHazeColor(hazeIntensity)}
+          opacity={getHazeOpacity(hazeIntensity)}
+          filter="url(#name-it-haze-blur)"
+        />
+      )}
     </svg>
   );
 }
