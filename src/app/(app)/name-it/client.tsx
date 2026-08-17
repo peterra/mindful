@@ -3,11 +3,16 @@
 import { useState, useTransition } from "react";
 import { NameItHands } from "@/components/name-it-hands";
 import { NameItFlowerTray } from "@/components/name-it-flower-tray";
+import { NameItHazeSlider } from "@/components/name-it-haze-slider";
 import { NameItNamingStep } from "@/components/name-it-naming-step";
 import { NameItHistory } from "@/components/name-it-history";
 import { Button } from "@/components/ui/button";
 import { saveFeelingEntry, deleteFeelingEntry } from "./actions";
-import type { FeelingEntrySummary, FlowerColorId } from "@/lib/name-it-layout";
+import {
+  DEFAULT_HAZE_INTENSITY,
+  type FeelingEntrySummary,
+  type FlowerColorId,
+} from "@/lib/name-it-layout";
 
 interface NameItClientProps {
   initialEntries: FeelingEntrySummary[];
@@ -17,6 +22,8 @@ type Phase = "building" | "naming" | "confirmation";
 
 export function NameItClient({ initialEntries }: NameItClientProps) {
   const [flowers, setFlowers] = useState<FlowerColorId[]>([]);
+  const [hasHaze, setHasHaze] = useState(false);
+  const [hazeIntensity, setHazeIntensity] = useState(DEFAULT_HAZE_INTENSITY);
   const [phase, setPhase] = useState<Phase>("building");
   const [feelingText, setFeelingText] = useState("");
   const [entries, setEntries] = useState(initialEntries);
@@ -36,17 +43,26 @@ export function NameItClient({ initialEntries }: NameItClientProps) {
     setFlowers([]);
   }
 
+  function handleToggleHaze() {
+    setHasHaze((prev) => !prev);
+  }
+
   function handleSubmit() {
     const trimmed = feelingText.trim();
     if (!trimmed) return;
     setSaveError(null);
     startSaving(async () => {
       try {
-        const entry = await saveFeelingEntry(flowers, trimmed);
+        const entry = await saveFeelingEntry(
+          flowers,
+          trimmed,
+          hasHaze,
+          hasHaze ? hazeIntensity : null
+        );
         setEntries((prev) => [entry, ...prev]);
         setPhase("confirmation");
       } catch {
-        // Bouquet and text are left untouched so the user can just retry.
+        // Bouquet, haze, and text are left untouched so the user can just retry.
         setSaveError("Couldn't save that — check your connection and try again.");
       }
     });
@@ -54,6 +70,8 @@ export function NameItClient({ initialEntries }: NameItClientProps) {
 
   function handleReset() {
     setFlowers([]);
+    setHasHaze(false);
+    setHazeIntensity(DEFAULT_HAZE_INTENSITY);
     setFeelingText("");
     setPhase("building");
   }
@@ -77,6 +95,8 @@ export function NameItClient({ initialEntries }: NameItClientProps) {
     );
   }
 
+  const canContinue = flowers.length > 0 || hasHaze;
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
@@ -86,21 +106,36 @@ export function NameItClient({ initialEntries }: NameItClientProps) {
         </Button>
       </div>
 
-      <NameItHands flowers={flowers} onRemoveFlower={handleRemove} />
+      <NameItHands
+        flowers={flowers}
+        onRemoveFlower={handleRemove}
+        hasHaze={hasHaze}
+        hazeIntensity={hazeIntensity}
+      />
 
       {phase === "building" && (
         <div className="space-y-4">
           <p className="text-center text-sm text-muted-foreground">
-            {flowers.length === 0
+            {flowers.length === 0 && !hasHaze
               ? "What are you feeling right now? Add some flowers."
               : "Add more, or continue when you're ready."}
           </p>
-          <NameItFlowerTray flowers={flowers} onAdd={handleAdd} />
-          {flowers.length > 0 && (
+          <NameItFlowerTray
+            flowers={flowers}
+            onAdd={handleAdd}
+            hasHaze={hasHaze}
+            onToggleHaze={handleToggleHaze}
+          />
+          {hasHaze && (
+            <NameItHazeSlider value={hazeIntensity} onChange={setHazeIntensity} />
+          )}
+          {canContinue && (
             <div className="flex justify-center gap-3">
-              <Button variant="outline" onClick={handleClearFlowers}>
-                Clear
-              </Button>
+              {flowers.length > 0 && (
+                <Button variant="outline" onClick={handleClearFlowers}>
+                  Clear
+                </Button>
+              )}
               <Button onClick={() => setPhase("naming")}>Continue</Button>
             </div>
           )}
