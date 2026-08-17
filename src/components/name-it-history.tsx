@@ -1,6 +1,6 @@
 "use client";
 
-import { Trash2 } from "lucide-react";
+import { Cloud, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FLOWER_COLORS, type FeelingEntrySummary } from "@/lib/name-it-layout";
 
@@ -55,6 +55,14 @@ export function NameItHistory({ entries, onBack, onDelete }: NameItHistoryProps)
                     />
                   );
                 })}
+                {entry.hasHaze && (
+                  <span
+                    aria-label="Had haze"
+                    className="flex h-4 w-4 items-center justify-center rounded-full bg-muted ring-2 ring-card"
+                  >
+                    <Cloud className="h-2.5 w-2.5 text-muted-foreground" />
+                  </span>
+                )}
               </div>
               <div className="flex-1">
                 <p className="text-sm font-medium">{entry.feelingText}</p>
