@@ -96,5 +96,7 @@ export const feelingEntries = pgTable("feeling_entries", {
     .notNull(),
   flowerColors: text("flower_colors").array().notNull(),
   feelingText: text("feeling_text").notNull(),
+  hasHaze: boolean("has_haze").default(false).notNull(),
+  hazeIntensity: integer("haze_intensity"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
