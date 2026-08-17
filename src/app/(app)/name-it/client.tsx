@@ -32,6 +32,10 @@ export function NameItClient({ initialEntries }: NameItClientProps) {
     setFlowers((prev) => prev.filter((_, i) => i !== index));
   }
 
+  function handleClearFlowers() {
+    setFlowers([]);
+  }
+
   function handleSubmit() {
     const trimmed = feelingText.trim();
     if (!trimmed) return;
@@ -93,7 +97,10 @@ export function NameItClient({ initialEntries }: NameItClientProps) {
           </p>
           <NameItFlowerTray flowers={flowers} onAdd={handleAdd} />
           {flowers.length > 0 && (
-            <div className="flex justify-center">
+            <div className="flex justify-center gap-3">
+              <Button variant="outline" onClick={handleClearFlowers}>
+                Clear
+              </Button>
               <Button onClick={() => setPhase("naming")}>Continue</Button>
             </div>
           )}
