@@ -8,6 +8,8 @@ import {
   getStemPath,
   getHazeColor,
   getHazeOpacity,
+  isValidHazeIntensity,
+  isSaveableEntry,
 } from "./name-it-layout";
 
 describe("FLOWER_COLORS", () => {
@@ -99,6 +101,10 @@ describe("getHazeColor", () => {
   it("clamps intensity below 0 to the same result as 0", () => {
     expect(getHazeColor(-20)).toBe(getHazeColor(0));
   });
+
+  it("clamps NaN to the light end instead of producing garbage", () => {
+    expect(getHazeColor(NaN)).toBe("#e8e8e8");
+  });
 });
 
 describe("getHazeOpacity", () => {
@@ -112,5 +118,59 @@ describe("getHazeOpacity", () => {
 
   it("returns the midpoint at intensity 50", () => {
     expect(getHazeOpacity(50)).toBeCloseTo(0.475);
+  });
+});
+
+describe("isValidHazeIntensity", () => {
+  it("is always true when haze is off, regardless of intensity value", () => {
+    expect(isValidHazeIntensity(false, 500)).toBe(true);
+    expect(isValidHazeIntensity(false, -1)).toBe(true);
+    expect(isValidHazeIntensity(false, NaN)).toBe(true);
+    expect(isValidHazeIntensity(false, "nonsense")).toBe(true);
+    expect(isValidHazeIntensity(false, null)).toBe(true);
+  });
+
+  it("accepts a valid integer in range when haze is on", () => {
+    expect(isValidHazeIntensity(true, 50)).toBe(true);
+  });
+
+  it("accepts the boundary values 0 and 100", () => {
+    expect(isValidHazeIntensity(true, 0)).toBe(true);
+    expect(isValidHazeIntensity(true, 100)).toBe(true);
+  });
+
+  it("rejects NaN", () => {
+    expect(isValidHazeIntensity(true, NaN)).toBe(false);
+  });
+
+  it("rejects a non-integer float", () => {
+    expect(isValidHazeIntensity(true, 50.5)).toBe(false);
+  });
+
+  it("rejects out-of-range values", () => {
+    expect(isValidHazeIntensity(true, -1)).toBe(false);
+    expect(isValidHazeIntensity(true, 101)).toBe(false);
+  });
+
+  it("rejects a value of the wrong type", () => {
+    expect(isValidHazeIntensity(true, "50")).toBe(false);
+  });
+});
+
+describe("isSaveableEntry", () => {
+  it("rejects an entry with no flowers and no haze", () => {
+    expect(isSaveableEntry(0, false)).toBe(false);
+  });
+
+  it("accepts a haze-only entry", () => {
+    expect(isSaveableEntry(0, true)).toBe(true);
+  });
+
+  it("accepts a flowers-only entry", () => {
+    expect(isSaveableEntry(3, false)).toBe(true);
+  });
+
+  it("accepts an entry with both flowers and haze", () => {
+    expect(isSaveableEntry(3, true)).toBe(true);
   });
 });

@@ -6,8 +6,8 @@ import { getDb } from "@/db";
 import { feelingEntries } from "@/db/schema";
 import {
   isValidFlowerColors,
-  MIN_HAZE_INTENSITY,
-  MAX_HAZE_INTENSITY,
+  isValidHazeIntensity,
+  isSaveableEntry,
   type FlowerColorId,
   type FeelingEntrySummary,
 } from "@/lib/name-it-layout";
@@ -27,15 +27,13 @@ export async function saveFeelingEntry(
   if (!isValidFlowerColors(flowerColors)) {
     throw new Error("Invalid flower selection");
   }
-  if (flowerColors.length === 0 && !hasHaze) {
+  if (typeof hasHaze !== "boolean") {
+    throw new Error("Invalid haze flag");
+  }
+  if (!isSaveableEntry(flowerColors.length, hasHaze)) {
     throw new Error("Add at least a flower or haze before saving");
   }
-  if (
-    hasHaze &&
-    (typeof hazeIntensity !== "number" ||
-      hazeIntensity < MIN_HAZE_INTENSITY ||
-      hazeIntensity > MAX_HAZE_INTENSITY)
-  ) {
+  if (!isValidHazeIntensity(hasHaze, hazeIntensity)) {
     throw new Error("Invalid haze intensity");
   }
 

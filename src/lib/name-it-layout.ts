@@ -79,6 +79,7 @@ const HAZE_LIGHT_OPACITY = 0.25;
 const HAZE_DARK_OPACITY = 0.7;
 
 function clampHazeIntensity(intensity: number): number {
+  if (!Number.isFinite(intensity)) return MIN_HAZE_INTENSITY;
   return Math.min(MAX_HAZE_INTENSITY, Math.max(MIN_HAZE_INTENSITY, intensity));
 }
 
@@ -103,6 +104,23 @@ export function getHazeColor(intensity: number): string {
 export function getHazeOpacity(intensity: number): number {
   const n = clampHazeIntensity(intensity) / 100;
   return HAZE_LIGHT_OPACITY + (HAZE_DARK_OPACITY - HAZE_LIGHT_OPACITY) * n;
+}
+
+export function isValidHazeIntensity(
+  hasHaze: boolean,
+  intensity: unknown
+): intensity is number {
+  if (!hasHaze) return true;
+  return (
+    typeof intensity === "number" &&
+    Number.isInteger(intensity) &&
+    intensity >= MIN_HAZE_INTENSITY &&
+    intensity <= MAX_HAZE_INTENSITY
+  );
+}
+
+export function isSaveableEntry(flowerCount: number, hasHaze: boolean): boolean {
+  return flowerCount > 0 || hasHaze;
 }
 
 export interface FeelingEntrySummary {
