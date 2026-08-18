@@ -161,6 +161,19 @@ export function VoiceSettingsPanel({
         </select>
       </Field>
 
+      {/* Visual speed — always enabled */}
+      <Field label={`Visual speed: ${settings.visualSpeed.toFixed(1)}×`}>
+        <input
+          type="range"
+          min={0.5}
+          max={2}
+          step={0.1}
+          value={settings.visualSpeed}
+          onChange={(e) => onChange({ visualSpeed: Number(e.target.value) })}
+          className="w-full"
+        />
+      </Field>
+
       {/* Preferred engine — always enabled */}
       <Field label="Prefer">
         <div className="flex flex-col gap-2 text-sm">

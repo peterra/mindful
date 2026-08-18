@@ -1,10 +1,11 @@
 "use client";
 
 import { useRef, useState, useEffect, useCallback } from "react";
-import { Play, Pause, RotateCcw, Volume2, FileText, Settings } from "lucide-react";
+import { Play, Pause, RotateCcw, Volume2, FileText, Settings, Circle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useVoiceSettings } from "@/lib/voice-settings";
 import { VoiceSettingsPanel } from "@/components/voice-settings-panel";
+import { BreathingDotOverlay } from "@/components/breathing-dot-overlay";
 
 interface MeditationPlayerProps {
   audioUrl: string | null;
@@ -33,6 +34,7 @@ export function MeditationPlayer({
     audioUrl && settings.preferredEngine === "audio" ? "audio" : "tts"
   );
   const [showScript, setShowScript] = useState(false);
+  const [showVisual, setShowVisual] = useState(false);
 
   // Check if browser TTS is available
   useEffect(() => {
@@ -303,6 +305,10 @@ export function MeditationPlayer({
           <RotateCcw className="mr-1 h-4 w-4" />
           Restart
         </Button>
+        <Button variant="outline" size="sm" onClick={() => setShowVisual(true)}>
+          <Circle className="mr-1 h-4 w-4" />
+          Visual
+        </Button>
         <Button
           variant="outline"
           size="sm"
@@ -337,6 +343,15 @@ export function MeditationPlayer({
             {script}
           </p>
         </div>
+      )}
+
+      {showVisual && (
+        <BreathingDotOverlay
+          paused={!isPlaying}
+          onTogglePause={togglePlay}
+          onExit={() => setShowVisual(false)}
+          speed={settings.visualSpeed}
+        />
       )}
     </div>
   );
