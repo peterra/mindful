@@ -29,7 +29,7 @@ A single blurred, filled ellipse layered on top of the flowers/stems (drawn afte
 | Fill color | `#e8e8e8` | `#4a4a4a` |
 | Opacity | `0.25` | `0.7` |
 
-Interpolate both fill color (per RGB channel) and opacity linearly by `n`. The default `t=50` should land close to the "medium" reference: `#c9c9c9`-ish fill, `~0.55` opacity.
+Interpolate both fill color (per RGB channel) and opacity linearly by `n`. This is the load-bearing formula — at the default `t=50` it produces `#999999` fill and `0.475` opacity exactly (not `#c9c9c9`/`~0.55`, which was an imprecise eyeballed reference from an earlier mockup and does not override the formula above).
 
 ## Persistence
 
