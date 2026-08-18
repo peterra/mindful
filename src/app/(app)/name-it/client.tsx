@@ -136,6 +136,9 @@ export function NameItClient({ initialEntries }: NameItClientProps) {
                   Clear
                 </Button>
               )}
+              <Button variant="outline" onClick={handleReset}>
+                Start over
+              </Button>
               <Button onClick={() => setPhase("naming")}>Continue</Button>
             </div>
           )}
@@ -153,6 +156,11 @@ export function NameItClient({ initialEntries }: NameItClientProps) {
           {saveError && (
             <p className="text-center text-sm text-destructive">{saveError}</p>
           )}
+          <div className="flex justify-center">
+            <Button variant="outline" size="sm" onClick={handleReset}>
+              Start over
+            </Button>
+          </div>
         </div>
       )}
 
