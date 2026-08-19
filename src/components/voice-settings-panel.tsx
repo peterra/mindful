@@ -162,12 +162,12 @@ export function VoiceSettingsPanel({
       </Field>
 
       {/* Visual speed — always enabled */}
-      <Field label={`Visual speed: ${settings.visualSpeed.toFixed(1)}×`}>
+      <Field label={`Visual speed: ${settings.visualSpeed.toFixed(2)}×`}>
         <input
           type="range"
-          min={0.5}
+          min={0.01}
           max={2}
-          step={0.1}
+          step={0.01}
           value={settings.visualSpeed}
           onChange={(e) => onChange({ visualSpeed: Number(e.target.value) })}
           className="w-full"
