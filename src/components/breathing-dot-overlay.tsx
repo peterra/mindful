@@ -6,7 +6,7 @@ import { X } from "lucide-react";
 const BASE_DURATION_MS = 7200;
 const MIN_DIAMETER_FRACTION = 0.015;
 const MIN_DIAMETER_PX = 3;
-const MAX_DIAMETER_MULTIPLE = 1.35;
+const MAX_DIAMETER_MULTIPLE = 2.6;
 const DOT_GRADIENT =
   "radial-gradient(circle at 50% 50%, var(--muted-foreground) 0%, var(--muted-foreground) 55%, transparent 78%)";
 
