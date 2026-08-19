@@ -4,7 +4,8 @@ import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
 
 const BASE_DURATION_MS = 7200;
-const MIN_DIAMETER_FRACTION = 0.1;
+const MIN_DIAMETER_FRACTION = 0.015;
+const MIN_DIAMETER_PX = 3;
 const MAX_DIAMETER_MULTIPLE = 1.35;
 const DOT_GRADIENT =
   "radial-gradient(circle at 50% 50%, var(--muted-foreground) 0%, var(--muted-foreground) 55%, transparent 78%)";
@@ -13,10 +14,15 @@ function ease(t: number) {
   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 }
 
-function fadeEnvelope(t: number, inEnd = 0.1, outStart = 0.82) {
+// Each layer is fully invisible for the second half of its own cycle (it's
+// still growing back there, just unseen) so its phase partner's small,
+// just-emerging dot is never masked by an already-large overlapping one —
+// every repeat reads as coming from far away, not just the first.
+function fadeEnvelope(t: number, inEnd = 0.06, outStart = 0.32, outEnd = 0.5) {
   if (t < inEnd) return t / inEnd;
-  if (t > outStart) return Math.max(0, 1 - (t - outStart) / (1 - outStart));
-  return 1;
+  if (t < outStart) return 1;
+  if (t < outEnd) return Math.max(0, 1 - (t - outStart) / (outEnd - outStart));
+  return 0;
 }
 
 interface BreathingDotOverlayProps {
@@ -73,13 +79,23 @@ export function BreathingDotOverlay({
         const elapsed = performance.now() - startTimeRef.current;
         const w = container!.clientWidth;
         const h = container!.clientHeight;
-        const base = Math.min(w, h) * MIN_DIAMETER_FRACTION;
+        const base = Math.max(MIN_DIAMETER_PX, Math.min(w, h) * MIN_DIAMETER_FRACTION);
         const max = Math.sqrt(w * w + h * h) * MAX_DIAMETER_MULTIPLE;
 
+        // Each layer waits out its phase delay before starting its own cycle
+        // from scratch, so both begin small on open instead of one layer
+        // appearing already mid-grown.
         [0, 0.5].forEach((phase, i) => {
-          const t = (((elapsed / duration) + phase) % 1 + 1) % 1;
-          const diameter = base + (max - base) * ease(t);
+          const localElapsed = elapsed - phase * duration;
           const el = layers[i]!;
+          if (localElapsed < 0) {
+            el.style.width = `${base}px`;
+            el.style.height = `${base}px`;
+            el.style.opacity = "0";
+            return;
+          }
+          const t = (localElapsed / duration) % 1;
+          const diameter = base + (max - base) * ease(t);
           el.style.width = `${diameter}px`;
           el.style.height = `${diameter}px`;
           el.style.opacity = String(fadeEnvelope(t));
