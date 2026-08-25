@@ -7,6 +7,7 @@ import {
   date,
   boolean,
   pgEnum,
+  real,
 } from "drizzle-orm/pg-core";
 
 export const experienceLevelEnum = pgEnum("experience_level", [
@@ -98,5 +99,16 @@ export const feelingEntries = pgTable("feeling_entries", {
   feelingText: text("feeling_text").notNull(),
   hasHaze: boolean("has_haze").default(false).notNull(),
   hazeIntensity: integer("haze_intensity"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const visualizationPresets = pgTable("visualization_presets", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: text("user_id")
+    .references(() => users.clerkId)
+    .notNull(),
+  name: text("name").notNull(),
+  style: text("style").notNull(),
+  speed: real("speed").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
