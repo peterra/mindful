@@ -12,6 +12,7 @@ export type VoiceSettings = {
   lang: string;
   preferredEngine: "audio" | "tts";
   visualSpeed: number;
+  visualStyle: "bloom" | "sine";
 };
 
 export const DEFAULT_VOICE_SETTINGS: Readonly<VoiceSettings> = Object.freeze({
@@ -22,6 +23,7 @@ export const DEFAULT_VOICE_SETTINGS: Readonly<VoiceSettings> = Object.freeze({
   lang: "en-US",
   preferredEngine: "audio",
   visualSpeed: 1,
+  visualStyle: "bloom",
 });
 
 function readStorage(): VoiceSettings {

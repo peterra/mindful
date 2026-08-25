@@ -5,7 +5,7 @@ import { Play, Pause, RotateCcw, Volume2, FileText, Settings, Circle } from "luc
 import { Button } from "@/components/ui/button";
 import { useVoiceSettings } from "@/lib/voice-settings";
 import { VoiceSettingsPanel } from "@/components/voice-settings-panel";
-import { BreathingDotOverlay } from "@/components/breathing-dot-overlay";
+import { VisualOverlay } from "@/components/visual-overlay";
 
 interface MeditationPlayerProps {
   audioUrl: string | null;
@@ -346,7 +346,8 @@ export function MeditationPlayer({
       )}
 
       {showVisual && (
-        <BreathingDotOverlay
+        <VisualOverlay
+          style={settings.visualStyle}
           paused={!isPlaying}
           onTogglePause={togglePlay}
           onExit={() => setShowVisual(false)}
