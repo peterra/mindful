@@ -4,7 +4,11 @@ import { useEffect, useId, useState } from "react";
 import { RotateCcw, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { VoiceSettings } from "@/lib/voice-settings";
-import type { VisualizationPresetSummary } from "@/lib/visualization-presets";
+import {
+  MIN_PRESET_SPEED,
+  MAX_PRESET_SPEED,
+  type VisualizationPresetSummary,
+} from "@/lib/visualization-presets";
 import {
   listVisualizationPresets,
   saveVisualizationPreset,
@@ -212,8 +216,8 @@ export function VoiceSettingsPanel({
       <Field label={`Visual speed: ${settings.visualSpeed.toFixed(2)}×`}>
         <input
           type="range"
-          min={0.01}
-          max={2}
+          min={MIN_PRESET_SPEED}
+          max={MAX_PRESET_SPEED}
           step={0.01}
           value={settings.visualSpeed}
           onChange={(e) => onChange({ visualSpeed: Number(e.target.value) })}

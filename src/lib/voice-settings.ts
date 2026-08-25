@@ -1,6 +1,10 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import {
+  isValidVisualizationStyle,
+  type VisualizationStyle,
+} from "@/lib/visualization-presets";
 
 const STORAGE_KEY = "mindful:voice-settings";
 
@@ -12,7 +16,7 @@ export type VoiceSettings = {
   lang: string;
   preferredEngine: "audio" | "tts";
   visualSpeed: number;
-  visualStyle: "bloom" | "sine";
+  visualStyle: VisualizationStyle;
 };
 
 export const DEFAULT_VOICE_SETTINGS: Readonly<VoiceSettings> = Object.freeze({
@@ -36,7 +40,10 @@ function readStorage(): VoiceSettings {
       parsed.preferredEngine === "audio" || parsed.preferredEngine === "tts"
         ? parsed.preferredEngine
         : DEFAULT_VOICE_SETTINGS.preferredEngine;
-    return { ...DEFAULT_VOICE_SETTINGS, ...parsed, preferredEngine };
+    const visualStyle = isValidVisualizationStyle(parsed.visualStyle)
+      ? parsed.visualStyle
+      : DEFAULT_VOICE_SETTINGS.visualStyle;
+    return { ...DEFAULT_VOICE_SETTINGS, ...parsed, preferredEngine, visualStyle };
   } catch {
     return DEFAULT_VOICE_SETTINGS;
   }

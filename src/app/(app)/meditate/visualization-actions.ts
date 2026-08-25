@@ -19,7 +19,7 @@ function toSummary(
     id: row.id,
     name: row.name,
     style: row.style as VisualizationStyle,
-    speed: row.speed,
+    speed: Math.round(row.speed * 100) / 100,
     createdAt: row.createdAt.toISOString(),
   };
 }

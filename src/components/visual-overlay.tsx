@@ -4,9 +4,10 @@ import { useEffect } from "react";
 import { X } from "lucide-react";
 import { DotVisual } from "@/components/dot-visual";
 import { SineWaveVisual } from "@/components/sine-wave-visual";
+import type { VisualizationStyle } from "@/lib/visualization-presets";
 
 interface VisualOverlayProps {
-  style: "bloom" | "sine";
+  style: VisualizationStyle;
   paused: boolean;
   onTogglePause: () => void;
   onExit: () => void;
