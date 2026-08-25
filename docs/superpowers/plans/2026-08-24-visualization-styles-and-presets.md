@@ -252,7 +252,7 @@ export function isValidPresetSpeed(speed: unknown): speed is number {
 - [ ] **Step 4: Run the tests and verify they pass**
 
 Run: `npx vitest run src/lib/visualization-presets.test.ts`
-Expected: PASS, all 13 tests green.
+Expected: PASS, all 15 tests green.
 
 - [ ] **Step 5: Type-check and lint**
 
