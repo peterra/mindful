@@ -1,9 +1,15 @@
 "use client";
 
 import { useEffect, useId, useState } from "react";
-import { RotateCcw } from "lucide-react";
+import { RotateCcw, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { VoiceSettings } from "@/lib/voice-settings";
+import type { VisualizationPresetSummary } from "@/lib/visualization-presets";
+import {
+  listVisualizationPresets,
+  saveVisualizationPreset,
+  deleteVisualizationPreset,
+} from "@/app/(app)/meditate/visualization-actions";
 
 interface VoiceSettingsPanelProps {
   settings: VoiceSettings;
@@ -25,6 +31,9 @@ export function VoiceSettingsPanel({
   currentMode,
 }: VoiceSettingsPanelProps) {
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [presets, setPresets] = useState<VisualizationPresetSummary[]>([]);
+  const [newPresetName, setNewPresetName] = useState("");
+  const [presetError, setPresetError] = useState<string | null>(null);
   const pitchDescId = useId();
   const langDescId = useId();
   const voiceDescId = useId();
@@ -44,6 +53,13 @@ export function VoiceSettingsPanel({
     };
   }, []);
 
+  // Load saved visualization presets once on mount.
+  useEffect(() => {
+    listVisualizationPresets()
+      .then(setPresets)
+      .catch(() => setPresetError("Couldn't load saved visualizations"));
+  }, []);
+
   const ttsDisabled = currentMode === "audio";
   // Exact BCP-47 match — some platforms use underscores (en_GB) so normalize first.
   const filteredVoices = voices.filter(
@@ -56,6 +72,37 @@ export function VoiceSettingsPanel({
     settings.voiceURI !== null &&
     filteredVoices.some((v) => v.voiceURI === settings.voiceURI);
   const effectiveVoiceURI = storedExists ? (settings.voiceURI as string) : "";
+
+  async function handleSavePreset() {
+    const trimmed = newPresetName.trim();
+    if (!trimmed) return;
+    setPresetError(null);
+    try {
+      const created = await saveVisualizationPreset(
+        trimmed,
+        settings.visualStyle,
+        settings.visualSpeed
+      );
+      setPresets((prev) => [created, ...prev]);
+      setNewPresetName("");
+    } catch {
+      setPresetError("Couldn't save that visualization");
+    }
+  }
+
+  async function handleDeletePreset(id: string) {
+    setPresetError(null);
+    try {
+      await deleteVisualizationPreset(id);
+      setPresets((prev) => prev.filter((p) => p.id !== id));
+    } catch {
+      setPresetError("Couldn't delete that visualization");
+    }
+  }
+
+  function handleUsePreset(preset: VisualizationPresetSummary) {
+    onChange({ visualStyle: preset.style, visualSpeed: preset.speed });
+  }
 
   return (
     <div className="space-y-5 rounded-xl bg-card p-6">
@@ -174,6 +221,30 @@ export function VoiceSettingsPanel({
         />
       </Field>
 
+      {/* Visual style — always enabled */}
+      <Field label="Visual style">
+        <div className="flex flex-col gap-2 text-sm">
+          <label className="flex items-center gap-2">
+            <input
+              type="radio"
+              name="visualStyle"
+              checked={settings.visualStyle === "bloom"}
+              onChange={() => onChange({ visualStyle: "bloom" })}
+            />
+            Soft Bloom
+          </label>
+          <label className="flex items-center gap-2">
+            <input
+              type="radio"
+              name="visualStyle"
+              checked={settings.visualStyle === "sine"}
+              onChange={() => onChange({ visualStyle: "sine" })}
+            />
+            Sine Wave
+          </label>
+        </div>
+      </Field>
+
       {/* Preferred engine — always enabled */}
       <Field label="Prefer">
         <div className="flex flex-col gap-2 text-sm">
@@ -197,6 +268,69 @@ export function VoiceSettingsPanel({
           </label>
         </div>
       </Field>
+
+      {/* Saved visualizations */}
+      <div className="space-y-3 border-t border-border pt-5">
+        <h4 className="text-sm font-medium">Saved visualizations</h4>
+
+        {presetError && (
+          <p className="text-xs text-destructive">{presetError}</p>
+        )}
+
+        {presets.length > 0 && (
+          <ul className="space-y-2">
+            {presets.map((preset) => (
+              <li
+                key={preset.id}
+                className="flex items-center justify-between gap-2 rounded-md border border-border px-3 py-2 text-sm"
+              >
+                <div className="min-w-0">
+                  <p className="truncate font-medium">{preset.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {preset.style === "bloom" ? "Soft Bloom" : "Sine Wave"} ·{" "}
+                    {preset.speed.toFixed(2)}×
+                  </p>
+                </div>
+                <div className="flex shrink-0 items-center gap-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleUsePreset(preset)}
+                  >
+                    Use
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    aria-label={`Delete ${preset.name}`}
+                    onClick={() => handleDeletePreset(preset.id)}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={newPresetName}
+            onChange={(e) => setNewPresetName(e.target.value)}
+            placeholder="Name this visualization"
+            className="w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm"
+          />
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={!newPresetName.trim()}
+            onClick={handleSavePreset}
+          >
+            Save
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
