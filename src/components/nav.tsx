@@ -12,6 +12,7 @@ import {
   Flower2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const navItems = [
   { href: "/dashboard", label: "Home", icon: Home },
@@ -52,14 +53,27 @@ export function DesktopSidebar() {
           );
         })}
       </nav>
-      <div className="border-t border-sidebar-border p-4">
+      <div className="flex items-center justify-between border-t border-sidebar-border p-4">
         <UserButton
           appearance={{
             elements: { avatarBox: "h-8 w-8" },
           }}
         />
+        <ThemeToggle />
       </div>
     </aside>
+  );
+}
+
+export function MobileTopBar() {
+  return (
+    <header className="flex h-14 items-center justify-between border-b border-border bg-background px-4 md:hidden">
+      <div className="flex items-center gap-2">
+        <Sparkles className="h-5 w-5 text-primary" />
+        <span className="text-base font-semibold">Mindful</span>
+      </div>
+      <ThemeToggle />
+    </header>
   );
 }
 
